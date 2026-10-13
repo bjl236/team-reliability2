@@ -39,3 +39,9 @@ gert::git_pull()                        # 1. get your teammates' latest commits
 gert::git_add(dir(all.files = TRUE))    # 2. stage every new or edited file
 gert::git_commit_all("my first commit") # 3. record a snapshot, with a message
 gert::git_push()
+
+## TEST MESSAGE
+
+gert::git_add(dir(all.files = TRUE))    # 2. stage every new or edited file
+gert::git_commit_all("hello world 2") # 3. record a snapshot, with a message
+gert::git_push()
