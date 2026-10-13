@@ -1,0 +1,18 @@
+# secrets: never commit these
+.env
+*.pem
+
+# R session and editor clutter
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# Python clutter
+__pycache__/
+.venv/
+.ipynb_checkpoints/
+
+# operating-system clutter
+.DS_Store
+Thumbs.db
