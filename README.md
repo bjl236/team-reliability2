@@ -1,13 +1,9 @@
 ###
 AEROPRINT QC
 Six Sigma Hackathon Project - Team 3 "Five Sigma" (DL)
+Prompt: Industrial Systems - 3D Printing for Aerospace
 Members: Brendan, Sharon, Connor, Phillip, Edwin
 Date: 10/17/2026
-###
-
-###
-SELECTED PROMPT
-Industrial Systems - 3D Printing for Aerospace
 ###
 
 ###
@@ -16,13 +12,13 @@ An aerospace contractor 3D-printing titanium brackets is failing client strength
 ###
 
 ###
-SUMMARY OF TOOL
+TOOL
 "AeroPrint QC" is a custom dashboard that evaluates process capability of 3D-printed titanium brackets. The tool is intended for use in a production setting where engineers can monitor process capability and make appropriate changes to setup to maximize production efficiency, mitigate losses, and adhere to strict reliabiity requirements.
 ###
 
 ###
 INPUTS
-- CSV file with the following columns in the order specified: | Laser Power (W) | Scan Speed (mm/s) | Oxygen (ppm) | Porosity (%) | Build Orientation | Tensile Strength |
+- CSV file with columns in the order specified: | Laser Power (W) | Scan Speed (mm/s) | Oxygen (ppm) | Porosity (%) | Build Orientation | Tensile Strength |
   - Laser Power (W): Source from machine logs or a thermopile laser power meter
   - Scan Speed (mm/s): Source from machine logs, slicer file, or physical accelerometer
   - Oxygen (ppm): Source from oxygen data logger as the median during the printing operation
