@@ -20,7 +20,7 @@ TOOL
 INPUTS
 - Inputs are variables and processes that affect the tensile strength output.
 - Inputs are tested sequentially based on the process order: 
--   Build Orientation -> (Laser Power / Scan Speed / Oxygen) -> Porosity -> Tensile Strength 
+  - Build Orientation -> (Laser Power / Scan Speed / Oxygen) -> Porosity -> Tensile Strength
 - Defined lower and upper bounds of process characteristics:
   - Laser Power (W): Source from machine logs or a thermopile laser power meter
   - Scan Speed (mm/s): Source from machine logs, slicer file, or physical accelerometer
