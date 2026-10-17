@@ -19,7 +19,8 @@ SUMMARY OF TOOL
 
 ###
 INPUTS
-- CSV column of tensile strengths (MPa)
+- CSV column of sample strengths (MPa)
+  - Different forms of strength are appropriate and can include tensile strength, compressive strength and shear strength
 - Minimum required tensile strength (MPa)
 - Minimum required process capability (CpK)
 ###
