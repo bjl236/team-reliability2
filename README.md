@@ -33,6 +33,9 @@ INPUTS
 
 ###
 OUTPUTS
+The process is to be understood via the following 5-step process:
+<img width="821" height="772" alt="WhatsApp Image 2026-10-17 at 2 57 23 PM" src="https://github.com/user-attachments/assets/5e68a506-2d07-4275-9b2e-68c73b57a083" />
+
 - Mean strength
 - CpK
 - PpK
