@@ -47,5 +47,7 @@ OUTPUTS
 ###
 TEST DATA SETS
 Test data sets were generated using the normal distribution function rnorm(). Characteristics of these data sets are described below:
-dataSet1.CSV 
+testDataSet1.CSV - Fully within spec. $$$
+testDataSet2.CSV - Full out of spec. $$$
+testDataSet3.CSV - Somewhat in spec. $$$
 ###
