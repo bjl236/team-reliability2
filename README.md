@@ -36,16 +36,23 @@ INPUTS
 
 ###
 OUTPUTS
-The tool reports with the process in five steps [Figure 1]. Failure at one or more steps is reported to the user.
+Key Statistics
+- Mean Strength (MPa)
+- CpK (Within Sigma)
+- PpK (Overall Sigma)
+- Number of Prints Below Requirements
+- Number of Out-of-Control Prints
 
+Control Charts
+- Individuals Chart
+- Rolling CpK
+- X-Bar Chart
+- R Chart
+
+Process Step
+The tool reports failures by process step, of which there are five [Figure 1]. Failures can occur in multiple steps or none at all. Failed steps and their corresponding statistics are reported to enable efficient corrective action.
 <img width="821" height="772" alt="WhatsApp Image 2026-10-17 at 2 57 23 PM" src="https://github.com/user-attachments/assets/5e68a506-2d07-4275-9b2e-68c73b57a083" />
-Figure 1.
-
-- Mean strength
-- CpK
-- PpK
-- Number of prints below requirements
-- Number of Out-of-Control (OOC) prints
+Figure 1. Process chart of 3D-printed titanium brackets.
 ###
 
 ###
