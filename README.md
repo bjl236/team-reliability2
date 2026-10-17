@@ -33,8 +33,10 @@ INPUTS
 
 ###
 OUTPUTS
-The process is to be understood via the following 5-step process:
+The tool reports with the process in five steps [Figure 1]. Failure at one or more steps is reported to the user.
+
 <img width="821" height="772" alt="WhatsApp Image 2026-10-17 at 2 57 23 PM" src="https://github.com/user-attachments/assets/5e68a506-2d07-4275-9b2e-68c73b57a083" />
+Figure 1.
 
 - Mean strength
 - CpK
