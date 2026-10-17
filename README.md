@@ -13,7 +13,7 @@ An aerospace contractor 3D-printing titanium brackets is failing client strength
 
 ###
 TOOL
-"AeroPrint QC" is a custom dashboard that evaluates process capability of 3D-printed titanium brackets. The tool is intended for use in a production setting where engineers can monitor process capability and make appropriate changes to setup to maximize production efficiency, mitigate losses, and adhere to strict reliabiity requirements.
+"AeroPrint QC" is a custom dashboard that monitors process capability of 3D-printed titanium brackets at all steps in the production process. The tool is intended for use in a production setting where engineers can monitor process capability and make appropriate changes to maximize production efficiency, mitigate losses, and adhere to capability requirements.
 ###
 
 ###
