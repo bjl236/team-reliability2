@@ -9,6 +9,9 @@ Date: 10/17/2026
 SELECTED PROMPT
 Industrial Systems - 3D Printing for Aerospace
 
+
+###
+PROBLEM
 An aerospace contractor 3D-printing titanium brackets is failing client strength tests. They don't currently track enough environmental and stress parameters against final part strength. Design a tool to monitor and flag when and whether the printing process is capable of meeting strict aerospace tolerances, and help contractors resolve these issues.
 ###
 
