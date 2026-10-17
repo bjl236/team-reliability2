@@ -1,17 +1,17 @@
-# AeroPrint QC: Statistical Monitoring for 3D-Printed Aerospace Brackets
+# AeroPrint QC: SPC and Capability Monitoring for 3D-Printed Aerospace Brackets
 
-**Inspiration:** Titanium additive manufacturing can produce strong parts but build conditions and inconsistent testing make it hard to recognize strength drift before downstream customer rejection.
+**Inspiration:** A contractor printing titanium brackets keeps failing client strength tests because it does not track build conditions against final strength. It finds out about drift only after parts are rejected.
 
-**What it does:** A dashboard accepts straightforward build and coupon measurements, estimates one-sided process capability, charts build-average statistical control, counts below-spec tensile coupons, screens relationships between measured printing conditions and strength, and offers a conservative investigation checklist.
+**What it does:** Upload print-by-print results (only tensile strength is required; laser power, scan speed, oxygen, porosity and orientation are optional). The tool draws an I chart and an X-bar/R chart with limits from an in-control baseline, applies the eight Nelson special-cause tests (user-selectable), reports Cpk and Ppk against the required strength with a rolling Cpk and 95% interval, counts prints below requirement and out-of-control prints, checks every print and every parameter against editable tolerances (Cp, Cpk, Pp, Ppk), points to the first print that went wrong and the parameter that moved with it, suggests corrective investigations, and exports a per-print flag file.
 
-**How we built it:** Python, Streamlit, pandas, NumPy, SciPy, and Plotly, with AI-assisted coding and fixed-seed synthetic datasets. The statistical methods are described in the README.
+**How we built it:** A plain, tested Python statistics library (`qc.py`), a FastAPI service, and a React + Vite dashboard served by the same app for Posit Connect. 48 automated tests cover hand-computed known answers, each Nelson test, degenerate cases and every endpoint. Three fixed-seed synthetic datasets with a codebook. Built with AI assistance, steered with a stats-first workflow.
 
-**Challenges:** Distinguishing statistical control from specification capability, avoiding misleading two-sided indices when only a minimum is given, and explaining why correlation does not establish root cause.
+**Challenges:** Keeping control limits from absorbing the excursion (baseline period); separating control from capability; one-sided specs where Cp is undefined; and discovering that stacking Nelson tests makes short series cry wolf (about 22% false alarms with one test and about 59% with all eight over 60 in-control prints), so we default to two tests and publish the rates.
 
-**Accomplishments:** A locally runnable dashboard, three reproducible demonstration datasets, data codebook, automated tests, and explicit qualification safeguards.
+**Accomplishments:** On the drift dataset the tool flags exactly print 31, where oxygen was shifted, and names oxygen as the parameter that signalled at the same print; the stable dataset raises no alarms; the high-variation dataset is correctly "stable but not capable".
 
-**What's next:** Build-aware regression, uncertainty intervals, measurement-system analysis, additional SPC rules, machine log integration, and validation using approved production datasets.
+**What's next:** Measurement-system analysis, build-aware (mixed) models, machine-log integration, validation on approved production data.
 
-**Demo script (2–3 minutes):** Start with Stable / capable and explain the specification. Show the histogram and Cpk/Ppk. Select Oxygen drift and point to build-average chart and alert. Select High variation to show degraded consistency. Review correlations as investigation leads, not proven causes. Demonstrate the CSV upload and explain how a contractor could collect data.
+**Demo script (2-3 min):** dataSet1 (green) -> dataSet2 (red at print 31; point at the Cpk vs Ppk gap, oxygen row, corrective list) -> dataSet3 (amber: stable but not capable) -> edit a tolerance -> turn on more tests and discuss false alarms -> download the flag CSV -> show the API call.
 
-**Before submitting:** Add actual team member names, repository URL, live deployed app URL, screenshots or video, and verify the app and tests on your deployment host. Do not claim actual aerospace qualification.
+**Before submitting:** add team names as registered on Devpost, repo URL, live Posit Connect URL, and a screenshot or video. Do not claim aerospace qualification.
