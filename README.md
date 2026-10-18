@@ -189,21 +189,28 @@ Recommendations are diagnostic guidance and must be validated before implementat
 
 ## 7. Test Datasets
 
-Three synthetic datasets are provided to demonstrate different manufacturing conditions and verify the tool's statistical functionality.
+Three synthetic datasets exercise the tool across distinct process conditions. Column definitions are in [`CODEBOOK.md`](CODEBOOK.md); this file explains what each dataset represents and what the tool should show.
 
-The datasets are generated using reproducible random sampling with fixed seeds. The statistical generation process uses normal-distribution sampling, analogous to R's `rnorm()` function.
+**Location:** all three CSVs and the codebook live in the `data/` directory of the `team-reliability2` repository (`data/stable_capable.csv`, `data/oxygen_drift.csv`, `data/high_variation.csv`).
 
-| Dataset | Scenario | Expected Evaluation |
-|---|---|---|
-| `testDataSet1.CSV` | Process measurements fully within specification | Demonstrates a process meeting the defined specification limits |
-| `testDataSet2.CSV` | Process measurements outside specification | Demonstrates a process failing the defined specification limits |
-| `testDataSet3.CSV` | Mixed in-specification and out-of-specification measurements | Demonstrates partial compliance and the need for further process investigation |
+**Structure (all three):** 24 builds × 5 tensile coupons = 120 rows. One row = one destructively tested specimen; builds appear in production order. Each row carries measured strength plus environmental proxies (oxygen, humidity, chamber temperature), machine settings (laser power, scan speed), and an applied service-stress proxy. Values are simulated with fixed random seeds. The 900 MPa minimum strength used below is illustrative, not a qualified aerospace limit.
 
-These scenarios are intended to exercise the dashboard's capability analysis, statistical control charts, and parameter inspection features.
+| Dataset | Story | Strength mean (MPa) | Cpk / Ppk | Coupons < 900 MPa | What the tool should show |
+|---|---|---|---|---|---|
+| `stable_capable.csv` | Consistent, high strength | 1012 | 3.27 / 3.04 | 0 | In control and highly capable — the healthy baseline |
+| `oxygen_drift.csv` | Oxygen rises, strength steps down after build 13 | 921 | 0.54 / 0.18 | 49 | A special-cause shift mid-run; not capable; strength tied to oxygen |
+| `high_variation.csv` | Noisy environment and strength | 939 | 0.52 / 0.47 | 9 | Excessive common-cause spread; not capable even without a single shift |
 
-> Being within specification does not necessarily mean a process is statistically stable or capable. Capability and control must be evaluated separately.
+### `stable_capable.csv`
+A process operating as intended. Strength holds tightly around 1012 MPa (985–1040), no coupons below the minimum, and capability indices are well above the 1.33 target. Short- and long-term variation agree (within-SD 11.4, overall-SD 12.3), so the process is both stable and predictable. Use this to confirm the tool reports a clean, capable baseline.
 
-For additional information, see the [dataset walkthrough](demo/README.md) and [data codebook](data/README.md).
+### `oxygen_drift.csv`
+The headline failure mode. For the first 13 builds the process runs near 954 MPa; after build 13 chamber oxygen climbs and mean strength steps down to ~882 MPa — a **−72 MPa shift** that a control chart should catch as a special cause. Oxygen is strongly inversely correlated with strength (r = −0.94), which is the physical story: excess oxygen embrittles titanium and drops tensile strength. Overall capability collapses (Ppk 0.18) and 49 of 120 coupons fall below 900 MPa. This dataset exercises both special-cause detection and the parameter-vs-strength association view.
+
+### `high_variation.csv`
+Stable in the sense that there is no single step change (build 1–13 and 14–24 means are within 5 MPa), but the process is too noisy to hold tolerance. Within-build and overall variation are both large (within-SD 24.8, overall-SD 27.4), capability is poor (Cpk 0.52), and 9 coupons fall below the minimum. The fix here is variation reduction, not hunting for one special cause — the contrast with `oxygen_drift.csv` (a shift) versus this (wide common-cause spread) is the point.
+
+> Being within specification does not mean a process is stable or capable. `stable_capable.csv` is both; `oxygen_drift.csv` fails on an assignable cause; `high_variation.csv` fails on common-cause variation. Capability and statistical control must be evaluated separately.
 
 ## 8. Installation and Run Instructions
 
