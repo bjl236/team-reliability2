@@ -2,6 +2,8 @@
 
 **Statistical Process Control and Capability Analysis for 3D-Printed Titanium Aerospace Brackets**
 
+**INSTALLATION INSTRUCTIONS:** See Section 8.0
+
 AeroPrint QC is a process monitoring and quality control dashboard designed to evaluate the manufacturing capability of additively manufactured titanium aerospace brackets.
 
 The tool helps aerospace contractors determine whether their printing processes meet tensile strength requirements, identify when processes become unstable, and prioritize process parameters for corrective investigation.
@@ -9,7 +11,6 @@ The tool helps aerospace contractors determine whether their printing processes 
 - **Project:** Six Sigma Hackathon — Industrial Systems: *3D Printing for Aerospace* (Virtual DL Challenge)
 - **Team:** Five Sigma — Brendan Lee, Sharon Chen, Connor Carrasquilla, Phillip Gorni, Edwin Munoz
 - **Date:** October 17, 2026
-- **INSTALLATION INSTRUCTIONS:** See Section 8.0
 - **Target Users:** Manufacturing and process engineers responsible for monitoring production quality and investigating process failures
 - **Dataset Documentation:** [`demo/README.md`](demo/README.md)
 - **Data Codebook:** [`data/README.md`](data/README.md)
