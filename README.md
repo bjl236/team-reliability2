@@ -10,7 +10,7 @@ The tool helps aerospace contractors determine whether their printing processes 
 - **Team:** Five Sigma — Brendan Lee, Sharon Chen, Connor Carrasquilla, Phillip Gorni, Edwin Munoz
 - **Date:** October 17, 2026
 - **Target Users:** Manufacturing and process engineers responsible for monitoring production quality and investigating process failures
-- **Live URL:** (See Section 8 for Run Instructions) http://127.0.0.1:8000
+- **Run Instructions:** See Section 8.0
 - **Dataset Documentation:** [`demo/README.md`](demo/README.md)
 - **Data Codebook:** [`data/README.md`](data/README.md)
 
