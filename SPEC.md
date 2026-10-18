@@ -58,10 +58,10 @@ Fixed for every team:
 - **What the user sees:** mean strength (MPa), Cpk and Ppk (unitless, with 95% interval), prints below the requirement, out-of-control prints and the first one, X̄ and S charts and a histogram, with an I-MR view on request, out-of-control prints in red, a pass/fail parameter table with Cp/Cpk/Pp/Ppk, suggested corrective investigations, a per-print flag CSV, and a banner: out of control / stable but not capable / passed.
 
 ## 7. Test datasets and codebook (rubric: demo 10, datasets 5, codebook 5)
-2-3 small CSVs in `data/`, invented but shaped like real field data, each showing one behavior.
+3 CSVs in `data/`, invented but shaped like real field data, each showing one behavior.
 `data/README.md` is the codebook: every file, every column with units, and what it would take to
 collect this data for real.
-- **Datasets:** `dataSet1.csv` (stable and capable), `dataSet2.csv` (oxygen rises from print 31, strength falls), `dataSet3.csv` (stable but too variable). 60 prints each.
+- **Datasets:** `high_variation.csv` (stable and capable), `oxygen_drift.csv` (oxygen rises from print 31, strength falls), `stable_capable.csv` (stable but too variable). 60 prints each.
 
 ## 8. Documentation and reproducibility (rubric: docs 10, public repo 5)
 - `README.md` says what the tool does, for whom, every input and parameter, how to run it in one
