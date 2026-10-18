@@ -13,7 +13,7 @@ The tool helps aerospace contractors determine whether their printing processes 
 - **Dataset Documentation:** [`demo/README.md`](demo/README.md)
 - **Data Codebook:** [`data/README.md`](data/README.md)
 
-## **INSTALLATION INSTRUCTIONS:** See Section 8.0
+## *INSTALLATION INSTRUCTIONS:* See Section 8.0
 
 > **Disclaimer:** AeroPrint QC is an educational prototype developed using synthetic data. All process tolerances and capability thresholds are intended for demonstration purposes and do not represent certified aerospace qualification limits.
 
