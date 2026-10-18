@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# One command: install, run the tests, start the app (React + API) at http://localhost:8000
+# Team-written stand-in for the course's testme script.
+set -e
+cd "$(dirname "$0")/.."
+python -m pip install -q -r requirements.txt
+python -m pytest -q
+cd app && python -m uvicorn app:app --port 8000
