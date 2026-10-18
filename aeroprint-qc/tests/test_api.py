@@ -61,3 +61,10 @@ def test_undefined_values_become_null_not_nan():
 ])
 def test_bad_requests_give_422(payload, files):
     assert client.post('/api/analyze', data=payload, files=files).status_code == 422
+
+
+def test_semicolon_csv_with_odd_headers_is_read():
+    csv = 'Print;Tensile Strength (MPa)\n' + '\n'.join(f'{i};{1050 + (i % 7)}' for i in range(1, 31))
+    r = client.post('/api/analyze', files={'file': ('x.csv', csv.encode('utf-8-sig'), 'text/csv')})
+    assert r.status_code == 200 and r.json()['n'] == 30
+    assert any('Tensile Strength' in w for w in r.json()['warnings'])

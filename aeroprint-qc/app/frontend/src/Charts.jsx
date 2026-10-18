@@ -23,7 +23,7 @@ export function ControlChart({ title, note, data, y, xLabel, yLabel, center, ucl
       <ResponsiveContainer width="100%" height={280}>
         <ComposedChart data={rows} margin={{ top: 8, right: 56, bottom: 18, left: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis type="number" dataKey="n" domain={[1, rows.length]} allowDecimals={false} label={{ value: xLabel, position: 'insideBottom', offset: -10, fontSize: 12 }} tick={{ fontSize: 11 }} />
+          <XAxis type="number" dataKey="n" domain={[rows[0].n, rows[rows.length - 1].n]} allowDecimals={false} label={{ value: xLabel, position: 'insideBottom', offset: -10, fontSize: 12 }} tick={{ fontSize: 11 }} />
           <YAxis domain={domain} tickFormatter={(v) => num(v, digits)} width={56} tick={{ fontSize: 11 }} label={{ value: yLabel, angle: -90, position: 'insideLeft', fontSize: 12, dx: -2 }} />
           <Tooltip formatter={(v) => num(v, digits + 1)} labelFormatter={(l) => `${xLabel} ${l}`} />
           {baselineEnd && <ReferenceArea x1={1} x2={baselineEnd} fill="#16a34a" fillOpacity={0.07} label={{ value: 'baseline', fontSize: 11, fill: C.ok, position: 'insideTopLeft' }} />}
@@ -33,28 +33,6 @@ export function ControlChart({ title, note, data, y, xLabel, yLabel, center, ucl
           {spec !== undefined && <ReferenceLine y={spec} stroke={C.spec} strokeWidth={1.5} label={{ value: 'Min', position: 'right', fontSize: 11, fill: C.spec }} />}
           <Line type="linear" dataKey={y} stroke={C.line} strokeWidth={1.5} dot={{ r: 2.5, fill: C.line }} isAnimationActive={false} />
           <Scatter data={bad} dataKey="v" xAxisId={0} fill={C.bad} shape="cross" legendType="none" isAnimationActive={false} />
-        </ComposedChart>
-      </ResponsiveContainer>
-    </figure>
-  )
-}
-
-export function RollingChart({ rolling, target, window }) {
-  const rows = rolling.map((r) => ({ ...r, band: r.ci_low === null ? null : [r.ci_low, r.ci_high] }))
-  if (!rows.length) return null
-  const domain = pad(rolling.flatMap((r) => [r.cpk, r.ci_low, r.ci_high]), [target])
-  return (
-    <figure className="chart">
-      <figcaption><strong>Rolling Cpk</strong><span className="muted"> window of {window} prints, 95% interval</span></figcaption>
-      <ResponsiveContainer width="100%" height={280}>
-        <ComposedChart data={rows} margin={{ top: 8, right: 56, bottom: 18, left: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis type="number" dataKey="print_number" domain={['dataMin', 'dataMax']} allowDecimals={false} label={{ value: 'Print at end of window', position: 'insideBottom', offset: -10, fontSize: 12 }} tick={{ fontSize: 11 }} />
-          <YAxis domain={domain} tickFormatter={(v) => num(v, 1)} width={56} tick={{ fontSize: 11 }} />
-          <Tooltip formatter={(v) => (Array.isArray(v) ? v.map((x) => num(x, 2)).join(' to ') : num(v, 2))} />
-          <Area dataKey="band" stroke="none" fill={C.band} fillOpacity={0.45} isAnimationActive={false} />
-          <ReferenceLine y={target} stroke={C.limit} strokeDasharray="5 4" label={{ value: 'target', position: 'right', fontSize: 11, fill: C.limit }} />
-          <Line type="linear" dataKey="cpk" stroke={C.line} strokeWidth={2} dot={false} isAnimationActive={false} />
         </ComposedChart>
       </ResponsiveContainer>
     </figure>
@@ -82,5 +60,37 @@ export function Histogram({ values, lsl }) {
         </BarChart>
       </ResponsiveContainer>
     </figure>
+  )
+}
+
+// Small teaching pictures for the eight special-cause rules. Values are in sigma units from the centre line.
+const RULES = {
+  1: { pts: [0.3, -0.5, 0.6, -0.2, 0.4, -0.7, 3.5, 0.2, -0.4, 0.5], hit: [6] },
+  2: { pts: [-0.4, 0.5, 0.3, 0.8, 0.4, 1.0, 0.5, 0.7, 0.3, 0.9, 0.6, -0.3], hit: [1, 2, 3, 4, 5, 6, 7, 8, 9] },
+  3: { pts: [0.3, -0.6, -0.3, 0.0, 0.4, 0.9, 1.4, 1.9, 2.4, 2.0], hit: [2, 3, 4, 5, 6, 7] },
+  4: { pts: [0.2, 1.0, -1.0, 0.9, -0.9, 1.1, -1.0, 0.8, -0.9, 1.0, -0.8, 0.9, -1.0, 0.8, -0.9, 0.1], hit: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] },
+  5: { pts: [0.2, -0.4, 0.5, 2.4, 0.3, 2.5, -0.3, 0.4, -0.5], hit: [3, 4, 5] },
+  6: { pts: [0.2, -0.3, 1.4, 1.3, 0.4, 1.5, 1.2, -0.2, 0.3], hit: [2, 3, 4, 5, 6] },
+  7: { pts: [1.4, -1.3, 0.2, -0.3, 0.4, -0.2, 0.3, 0.1, -0.3, 0.2, -0.4, 0.3, -0.1, 0.4, -0.2, 0.3, -0.3, 1.2], hit: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] },
+  8: { pts: [0.3, 1.6, -1.4, 1.5, -1.7, 1.3, -1.5, 1.6, -1.4, 0.2], hit: [1, 2, 3, 4, 5, 6, 7, 8] },
+}
+
+export function RuleDiagram({ rule }) {
+  const { pts, hit } = RULES[rule]
+  const W = 280, H = 130, L = 30, R = 6, T = 8, B = 8
+  const x = (i) => L + (i * (W - L - R)) / (pts.length - 1)
+  const y = (v) => T + ((4 - Math.max(-3.9, Math.min(3.9, v))) * (H - T - B)) / 8
+  const lines = [[3, 'UCL +3σ', C.limit], [2, '+2σ', '#9ca3af'], [1, '+1σ', '#9ca3af'], [0, 'CL', C.center], [-1, '-1σ', '#9ca3af'], [-2, '-2σ', '#9ca3af'], [-3, 'LCL -3σ', C.limit]]
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`Example of rule ${rule}`}>
+      {lines.map(([v, t, c]) => (
+        <g key={v}>
+          <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke={c} strokeWidth={v === 0 ? 1 : 0.7} strokeDasharray={Math.abs(v) === 3 ? '5 3' : '2 3'} />
+          <text x={L - 3} y={y(v) + 3} fontSize="7.5" textAnchor="end" fill={c}>{t.replace('UCL ', '').replace('LCL ', '')}</text>
+        </g>
+      ))}
+      <polyline fill="none" stroke={C.line} strokeWidth="1.3" points={pts.map((v, i) => `${x(i)},${y(v)}`).join(' ')} />
+      {pts.map((v, i) => <circle key={i} cx={x(i)} cy={y(v)} r={hit.includes(i) ? 3.6 : 2.2} fill={hit.includes(i) ? C.bad : C.line} />)}
+    </svg>
   )
 }

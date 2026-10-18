@@ -19,7 +19,6 @@ export async function analyze({ file, dataset, settings }) {
   fd.append('target_cpk', settings.targetCpk)
   if (settings.baseline) fd.append('baseline', settings.baseline)
   fd.append('subgroup_size', settings.subgroupSize)
-  fd.append('window', settings.window)
   fd.append('tests', settings.tests.join(','))
   const limits = {}
   for (const [k, v] of Object.entries(settings.limits)) limits[k] = { lower: v.lower === '' ? null : Number(v.lower), upper: v.upper === '' ? null : Number(v.upper) }

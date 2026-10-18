@@ -205,13 +205,7 @@ def test_xbar_chart_flags_drift_subgroups():
     assert len(xb['xbar_flagged']) >= 3
 
 
-# ---- rolling capability / parameters / export -------------------------------
-def test_rolling_capability_window_and_first_below():
-    r = qc.analyze(load('dataSet2'), window=20)
-    assert r['rolling']['print_number'].iloc[0] == 20 and len(r['rolling']) == 41
-    assert r['first_below_target_print'] is not None and r['first_below_target_print'] > 30
-
-
+# ---- parameters / export -------------------------------
 def test_parameter_limits_editable_and_optional():
     r = qc.analyze(load('dataSet1'), limits={'laser_power_w': (279.0, 281.0)})
     assert list(r['parameters']['parameter']) == ['laser_power_w']
@@ -238,3 +232,75 @@ def test_sample_data_copy_matches_data_folder():
         a = (ROOT / 'data' / f'{n}.csv').read_text()
         b = (ROOT / 'app' / 'sample_data' / f'{n}.csv').read_text()
         assert a == b
+
+
+# ---- S chart and MR chart: textbook constants ---------------------------------
+def test_c4_and_s_chart_constants_n5():
+    assert qc.c4(5) == pytest.approx(0.9400, abs=1e-4)
+    x = np.array([10, 12, 11, 13, 9] * 4 + [10, 11, 12, 13, 14] * 4, dtype=float)   # 8 subgroups of 5
+    r = qc.xbar_s(x, n=5, baseline_k=8)
+    sbar = r['s_center']
+    assert r['xbar_ucl'] - r['xbar_center'] == pytest.approx(1.427 * sbar, rel=2e-3)   # A3 = 1.427
+    assert r['s_ucl'] == pytest.approx(2.089 * sbar, rel=2e-3) and r['s_lcl'] == 0.0   # B4 = 2.089, B3 = 0
+
+
+def test_s_chart_b3_positive_for_n7():
+    x = np.arange(70, dtype=float) % 9
+    r = qc.xbar_s(x, n=7, baseline_k=10)
+    assert r['s_lcl'] == pytest.approx(0.118 * r['s_center'], rel=5e-3)               # B3 = 0.118
+
+
+def test_mr_chart_known_values():
+    m = qc.mr_chart([10, 12, 11, 15, 14, 13], baseline_n=6)
+    assert list(m['values']) == [2, 1, 4, 1, 1] and m['center'] == pytest.approx(1.8)
+    assert m['ucl'] == pytest.approx(3.267 * 1.8) and m['lcl'] == 0.0
+
+
+def test_s_chart_flags_variance_increase():
+    rng = np.random.default_rng(5)
+    x = np.concatenate([rng.normal(100, 1, 50), rng.normal(100, 6, 25)])
+    r = qc.xbar_s(x, n=5, baseline_k=10)
+    assert len(r['s_flagged']) >= 3 and min(r['s_flagged']) >= 10
+
+
+# ---- flexible column detection -------------------------------------------------
+def _ds1():
+    return load('dataSet1')
+
+
+@pytest.mark.parametrize('name', ['Tensile Strength (MPa)', 'UTS', 'uts_mpa', 'TENSILE_STRENGTH', 'Ultimate Tensile Strength', 'strength'])
+def test_strength_column_found_under_other_names(name):
+    d = _ds1().rename(columns={S: name})
+    r = qc.analyze(d)
+    assert r['n'] == 60 and r['mean'] == pytest.approx(qc.analyze(_ds1())['mean'])
+    assert any(name in w for w in r['warnings'])
+
+
+def test_parameter_columns_found_under_other_names():
+    d = _ds1().rename(columns={'laser_power_w': 'Laser Power (W)', 'oxygen_ppm': 'O2 (ppm)', S: 'UTS'})
+    r = qc.analyze(d)
+    assert set(r['parameters']['parameter']) == set(qc.analyze(_ds1())['parameters']['parameter'])
+
+
+def test_single_unlabelled_numeric_column_is_used():
+    d = pd.DataFrame({'print_number': range(1, 41), 'value': np.random.default_rng(1).normal(1050, 8, 40)})
+    r = qc.analyze(d)
+    assert r['n'] == 40 and any('only numeric column' in w for w in r['warnings'])
+
+
+def test_ambiguous_columns_give_helpful_error():
+    rng = np.random.default_rng(2)
+    d = pd.DataFrame({'a': rng.normal(5, 1, 30), 'b': rng.normal(9, 1, 30)})
+    with pytest.raises(ValueError, match='Columns in your file: a, b'):
+        qc.validate(d)
+
+
+def test_non_numeric_error_names_column_and_row():
+    d = _ds1(); d['oxygen_ppm'] = d['oxygen_ppm'].astype(object); d.loc[4, 'oxygen_ppm'] = '30 ppm'
+    with pytest.raises(ValueError, match="oxygen_ppm.*row 5"):
+        qc.validate(d)
+
+
+def test_yield_strength_is_not_taken_for_tensile():
+    d = _ds1().rename(columns={S: 'Tensile Strength'}); d['Yield Strength'] = d['Tensile Strength'] * 0.9
+    assert qc.analyze(d)['mean'] == pytest.approx(qc.analyze(_ds1())['mean'])

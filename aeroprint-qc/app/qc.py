@@ -6,6 +6,7 @@ an X-bar/R chart of consecutive subgroups.  Limits come from an in-control
 baseline (first N prints), never from the whole series.
 """
 import math
+import re
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -27,25 +28,94 @@ MIN_PRINTS = 20
 
 
 # ---------------------------------------------------------------- input
-def validate(df):
-    """Check and clean input. Only `tensile_strength_mpa` is required; the five process
-    parameters are optional. Rows must be in production order. Returns a cleaned copy."""
+def _key(name):
+    """Normalise a column name: lower case, letters and digits only ('Tensile Strength (MPa)' -> 'tensilestrengthmpa')."""
+    return re.sub(r'[^a-z0-9]', '', str(name).lower())
+
+
+# Words that identify each column in files we did not write. Exact normalised names first, then keyword matches.
+_ALIASES = {
+    STRENGTH: {'exact': {'tensilestrengthmpa', 'tensilestrength', 'uts', 'utsmpa', 'ultimatetensilestrength',
+                         'ultimatetensilestrengthmpa', 'strength', 'strengthmpa', 'tensile', 'tensilempa'},
+               'any': [('tensile',), ('uts',), ('ultimate', 'strength'), ('strength',)], 'not': ('yield', 'ys')},
+    'laser_power_w': {'exact': {'laserpowerw', 'laserpower', 'power', 'powerw'}, 'any': [('laser', 'power'), ('power',)], 'not': ()},
+    'scan_speed_mm_s': {'exact': {'scanspeedmms', 'scanspeed', 'speed', 'speedmms'}, 'any': [('scan', 'speed'), ('speed',)], 'not': ()},
+    'oxygen_ppm': {'exact': {'oxygenppm', 'oxygen', 'o2', 'o2ppm'}, 'any': [('oxygen',), ('o2',)], 'not': ()},
+    'porosity_pct': {'exact': {'porositypct', 'porosity', 'porositypercent'}, 'any': [('porosity',)], 'not': ()},
+    'build_orientation_deg': {'exact': {'buildorientationdeg', 'buildorientation', 'orientation', 'orientationdeg', 'buildangle'},
+                              'any': [('orient',), ('buildangle',)], 'not': ()},
+}
+_ID_LIKE = ('print', 'id', 'index', 'run', 'build', 'number', 'no', 'sample', 'part', 'time', 'date', 'order', 'row', 'unnamed')
+
+
+def map_columns(df):
+    """Find our columns in any CSV: ignore case, spaces, units and punctuation, accept common synonyms
+    ('UTS', 'Tensile Strength (MPa)', 'O2', 'Laser Power'...), and if no strength column is named but exactly one
+    numeric column is left over, use that one. Returns (renamed copy, notes). Raises ValueError listing the columns found."""
     d = df.copy()
-    d.columns = [str(c).strip() for c in d.columns]
+    d.columns = [str(c).strip().lstrip('\ufeff') for c in d.columns]
+    cols, notes, used = list(d.columns), [], set()
+    rename = {}
+    for target, rule in _ALIASES.items():
+        if target in cols:
+            used.add(target)
+            continue
+        pick = None
+        for c in cols:
+            if c not in used and c not in rename and _key(c) in rule['exact']:
+                pick = c
+                break
+        if pick is None:
+            for words in rule['any']:
+                for c in cols:
+                    k = _key(c)
+                    if (c in used or c in rename or any(w in k for w in rule['not'])
+                            or c in (t for t in _ALIASES)):
+                        continue
+                    if all(w in k for w in words):
+                        pick = c
+                        break
+                if pick:
+                    break
+        if pick:
+            rename[pick] = target
+            notes.append(f"Column '{pick}' was read as {target}.")
+    d = d.rename(columns=rename)
     if STRENGTH not in d.columns:
-        raise ValueError(f'Missing required column: {STRENGTH}')
+        left = [c for c in d.columns if c not in _ALIASES and not _key(c).startswith(_ID_LIKE)
+                and pd.to_numeric(d[c], errors='coerce').notna().all()]
+        if len(left) == 1:
+            d = d.rename(columns={left[0]: STRENGTH})
+            notes.append(f"No strength column was named, so the only numeric column '{left[0]}' was read as {STRENGTH}.")
+        else:
+            raise ValueError(f"Could not find the tensile strength column. Columns in your file: {', '.join(map(str, cols))}. "
+                             f"Rename the strength column to {STRENGTH} (or something like 'Tensile Strength (MPa)' or 'UTS').")
+    return d, notes
+
+
+def validate(df):
+    """Check and clean input. Only the tensile strength column is required; the five process parameters are
+    optional. Column names are matched flexibly (see map_columns). Rows must be in production order.
+    Returns a cleaned copy; `.attrs['column_notes']` lists any renaming that was done."""
+    d, notes = map_columns(df)
+    if not notes:
+        notes = list(df.attrs.get('column_notes', []))
     cols = [c for c in COLUMNS if c in d.columns]
     for c in cols:
-        d[c] = pd.to_numeric(d[c], errors='coerce')
-    if d[cols].isna().any().any():
-        raise ValueError('Numeric columns contain missing or non-numeric values.')
+        num = pd.to_numeric(d[c], errors='coerce')
+        if num.isna().any():
+            row = int(np.where(num.isna())[0][0]) + 1
+            raise ValueError(f"Column '{c}' has a missing or non-numeric value at row {row}. Use plain numbers without units.")
+        d[c] = num
     if len(d) < MIN_PRINTS:
         raise ValueError(f'Provide at least {MIN_PRINTS} prints (rows).')
     if (d[STRENGTH] <= 0).any():
         raise ValueError(f'{STRENGTH} must be positive.')
     if 'porosity_pct' in d.columns and ((d['porosity_pct'] < 0) | (d['porosity_pct'] > 100)).any():
         raise ValueError('porosity_pct must be between 0 and 100.')
-    return d.reset_index(drop=True)
+    d = d.reset_index(drop=True)
+    d.attrs['column_notes'] = notes
+    return d
 
 
 # ---------------------------------------------------------------- building blocks
@@ -152,16 +222,47 @@ def xbar_r(x, n=5, baseline_k=None):
             'r_flagged': [int(i) for i in np.where((ranges > lim['r_ucl']) | (ranges < lim['r_lcl']))[0]]}
 
 
-def rolling_capability(x, lsl, window=20, conf=0.95):
-    """One-sided Cpk over a rolling window of prints. `print_number` is 1-based (window end)."""
+def mr_chart(x, baseline_n):
+    """Moving-range (MR) chart: MR_i = |x_i - x_(i-1)|. Limits from the baseline: centre MRbar, UCL = 3.267*MRbar, LCL = 0."""
     x = np.asarray(x, dtype=float)
-    rows = []
-    for e in range(window - 1, len(x)):
-        seg = x[e - window + 1:e + 1]
-        k = capability(float(seg.mean()), mr_sigma(seg), lsl, None)[1]
-        lo, hi = index_ci(k, len(seg), conf)
-        rows.append({'print_number': e + 1, 'mean': float(seg.mean()), 'cpk': k, 'ci_low': lo, 'ci_high': hi})
-    return pd.DataFrame(rows, columns=['print_number', 'mean', 'cpk', 'ci_low', 'ci_high'])
+    mr = np.abs(np.diff(x))
+    k = max(1, min(int(baseline_n) - 1, len(mr)))
+    bar = float(mr[:k].mean())
+    ucl = 3.267 * bar
+    return {'values': mr, 'center': bar, 'ucl': ucl, 'lcl': 0.0, 'baseline': k,
+            'flagged': [int(i) for i in np.where(mr > ucl)[0]]}
+
+
+def c4(n):
+    """Unbiasing constant for the sample standard deviation: E[s] = c4(n) * sigma (normal data)."""
+    return math.sqrt(2.0 / (n - 1)) * math.exp(math.lgamma(n / 2.0) - math.lgamma((n - 1) / 2.0))
+
+
+def xbar_s(x, n=5, baseline_k=None):
+    """X-bar and S chart of consecutive subgroups of size n (trailing partial subgroup dropped).
+    Limits from the first `baseline_k` subgroups: Xbar-bar +/- A3*Sbar, S: B3*Sbar, B4*Sbar,
+    with A3 = 3/(c4*sqrt(n)), B3 = max(0, 1-3*sqrt(1-c4^2)/c4), B4 = 1+3*sqrt(1-c4^2)/c4."""
+    if n not in XBAR_CONST:
+        raise ValueError('subgroup_size must be an integer from 2 to 10.')
+    x = np.asarray(x, dtype=float)
+    m = len(x) // n
+    if m < 4:
+        raise ValueError(f'Need at least 4 subgroups of {n} prints for an X-bar/S chart.')
+    g = x[:m * n].reshape(m, n)
+    means, sds = g.mean(axis=1), g.std(axis=1, ddof=1)
+    k = baseline_k or max(4, m // 2)
+    k = int(min(max(k, 4), m))
+    c = c4(n)
+    a3 = 3.0 / (c * math.sqrt(n))
+    w = 3.0 * math.sqrt(1.0 - c * c) / c
+    b3, b4 = max(0.0, 1.0 - w), 1.0 + w
+    xbb, sbar = float(means[:k].mean()), float(sds[:k].mean())
+    lim = {'xbar_center': xbb, 'xbar_ucl': xbb + a3 * sbar, 'xbar_lcl': xbb - a3 * sbar,
+           's_center': sbar, 's_ucl': b4 * sbar, 's_lcl': b3 * sbar}
+    return {'n': n, 'subgroups': m, 'baseline_k': k, 'means': means, 'sds': sds, **lim,
+            'sigma_within': sbar / c,
+            'xbar_flagged': [int(i) for i in np.where((means > lim['xbar_ucl']) | (means < lim['xbar_lcl']))[0]],
+            's_flagged': [int(i) for i in np.where((sds > lim['s_ucl']) | (sds < lim['s_lcl']))[0]]}
 
 
 def _first_signal(x, baseline_n, tests=DEFAULT_TESTS):
@@ -207,7 +308,7 @@ def parameter_inspection(d, limits=None, target=1.33, baseline_n=None):
 
 
 # ---------------------------------------------------------------- main entry
-def analyze(df, lsl=1000.0, target_cpk=1.33, baseline=None, subgroup_size=5, window=20,
+def analyze(df, lsl=1000.0, target_cpk=1.33, baseline=None, subgroup_size=5,
             tests=DEFAULT_TESTS, limits=None):
     """Full analysis of a print-by-print dataset. Returns a dict (keys documented in README).
     lsl: minimum required tensile strength (MPa). target_cpk: minimum required capability.
@@ -221,7 +322,6 @@ def analyze(df, lsl=1000.0, target_cpk=1.33, baseline=None, subgroup_size=5, win
     b = int(baseline) if baseline else min(max(MIN_PRINTS, n // 2), n)
     if not 5 <= b <= n:
         raise ValueError(f'baseline must be between 5 and {n}.')
-    window = int(min(max(window, 5), n))
     tests = tuple(sorted(set(int(t) for t in tests)))
     if not tests or not set(tests) <= set(range(1, 9)):
         raise ValueError('tests must be a non-empty subset of 1-8.')
@@ -233,9 +333,7 @@ def analyze(df, lsl=1000.0, target_cpk=1.33, baseline=None, subgroup_size=5, win
     fired = nelson_tests(x, lim['center'], lim['sigma'], tests)
     flagged = sorted({i for v in fired.values() for i in v})
     by_print = {i: [t for t in tests if i in fired[t]] for i in flagged}
-    roll = rolling_capability(x, lsl, window)
-    below = roll[roll['cpk'] < target_cpk]
-    xb = xbar_r(x, int(subgroup_size))
+    xb = xbar_s(x, int(subgroup_size))
     par = parameter_inspection(d, limits, target_cpk, b)
 
     assoc = []
@@ -247,7 +345,7 @@ def analyze(df, lsl=1000.0, target_cpk=1.33, baseline=None, subgroup_size=5, win
 
     stable = not flagged
     capable = bool(np.isfinite(cpk) and np.isfinite(ppk) and cpk >= target_cpk and ppk >= target_cpk)
-    warns = []
+    warns = list(d.attrs.get('column_notes', []))
     if not stable:
         warns.append('Process is not in statistical control: capability indices are not predictive until special causes are removed.')
     if not np.isfinite(cpk):
@@ -261,8 +359,7 @@ def analyze(df, lsl=1000.0, target_cpk=1.33, baseline=None, subgroup_size=5, win
         'ooc_count': len(flagged), 'x': x, 'baseline': b, **lim,
         'tests': fired, 'tests_used': tests, 'tests_by_print': by_print, 'flagged': flagged,
         'first_signal_print': (flagged[0] + 1) if flagged else None,
-        'rolling': roll, 'window': window,
-        'first_below_target_print': int(below['print_number'].iloc[0]) if len(below) else None,
+        'mr': mr_chart(x, b),
         'xbar': xb, 'parameters': par, 'associations': assoc,
         'stable': stable, 'capable': capable, 'warnings': warns,
     }
@@ -293,7 +390,7 @@ def corrective_actions(r):
     for _, row in par[par['status'].isin(['off-center', 'too much spread', 'too close to limit', 'out of limits (constant)'])].iterrows():
         acts.append(f"{row['parameter']}: {row['status']} ({row['pct_out_of_spec']:.0f}% of prints outside {_fmt_lim(row)}): "
                     f"check setpoint, calibration and drift.")
-    acts.append('Always: confirm the tensile test method (ASTM A370) and the approved specification, material/process '
+    acts.append('Always: confirm the tensile test method (ASTM E8/E8M; ASTM F2924 is the specification for additively manufactured Ti-6Al-4V) and the approved specification, material/process '
                 'qualification and engineering sign-off. Correlation is not causation.')
     return acts
 

@@ -65,7 +65,7 @@ def health():
 @app.get('/api/defaults')
 def defaults():
     return {'limits': {k: {'lower': v[0], 'upper': v[1]} for k, v in qc.DEFAULT_LIMITS.items()},
-            'tests': list(qc.DEFAULT_TESTS), 'lsl': 1000.0, 'target_cpk': 1.33, 'subgroup_size': 5, 'window': 20,
+            'tests': list(qc.DEFAULT_TESTS), 'lsl': 1000.0, 'target_cpk': 1.33, 'subgroup_size': 5,
             'columns': qc.COLUMNS, 'required': [qc.STRENGTH]}
 
 
@@ -101,10 +101,19 @@ def parse_limits(raw: Optional[str]):
         raise HTTPException(422, f'Bad limits: {e}')
 
 
+def read_table(raw: bytes):
+    """Read a CSV-like upload. Picks the separator (comma, semicolon, tab or pipe) that appears most often in the
+    header line, and ignores a leading byte-order mark that Excel adds."""
+    text = raw.decode('utf-8-sig')
+    header = text.splitlines()[0] if text.strip() else ''
+    sep = max(',;\t|', key=header.count) if any(c in header for c in ',;\t|') else ','
+    return pd.read_csv(io.StringIO(text), sep=sep)
+
+
 @app.post('/api/analyze')
 async def analyze(file: Optional[UploadFile] = File(None), dataset: Optional[str] = Form(None),
                   lsl: float = Form(1000.0), target_cpk: float = Form(1.33), baseline: Optional[int] = Form(None),
-                  subgroup_size: int = Form(5), window: int = Form(20), tests: str = Form('1,2'),
+                  subgroup_size: int = Form(5), tests: str = Form('1,2'),
                   limits: Optional[str] = Form(None)):
     """Analyse a CSV (one row per print, in production order). Provide `file` or `dataset`."""
     try:
@@ -112,7 +121,7 @@ async def analyze(file: Optional[UploadFile] = File(None), dataset: Optional[str
             raw = await file.read()
             if len(raw) > MAX_BYTES:
                 raise HTTPException(413, 'File too large (limit 5 MB).')
-            df = pd.read_csv(io.BytesIO(raw))
+            df = read_table(raw)
         elif dataset in DATASETS:
             df = pd.read_csv(SAMPLES / f'{dataset}.csv')
         else:
@@ -120,7 +129,7 @@ async def analyze(file: Optional[UploadFile] = File(None), dataset: Optional[str
         sel = tuple(int(t) for t in tests.split(',') if t.strip())
         lim = parse_limits(limits)
         d = qc.validate(df)
-        r = qc.analyze(d, lsl, target_cpk, baseline or None, subgroup_size, window, sel, lim)
+        r = qc.analyze(d, lsl, target_cpk, baseline or None, subgroup_size, sel, lim)
         table = qc.flag_prints(d, r, lim)
     except HTTPException:
         raise

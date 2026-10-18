@@ -47,3 +47,44 @@ main th { background: #f1f5f9; font-weight: 600; font-size: 12px; }
 .busy { position: fixed; top: 10px; right: 16px; background: #0f172a; color: #fff; font-size: 12px; padding: 4px 10px; border-radius: 99px; z-index: 5; }
 .boot { padding: 40px; }
 @media (max-width: 1000px) { .app { grid-template-columns: 1fr; } aside { position: static; height: auto; } .cards { grid-template-columns: repeat(2, 1fr); } .grid2 { grid-template-columns: 1fr; } main { padding: 16px; } }
+
+.refs { font-size: 11.5px; padding-left: 18px; color: var(--muted); } .refs li { margin-bottom: 8px; line-height: 1.4; word-break: break-word; }
+
+.preset { margin: 8px 0; font-size: 12px; } .preset summary { cursor: pointer; color: var(--blue); font-weight: 600; }
+.rule { margin: 10px 0; padding: 6px 0; border-top: 1px solid var(--line); } .rule strong { font-size: 12px; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; font-size: 13px; line-height: 1.5; }
+.steps > div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.imr { margin-top: 14px; } .imr summary { cursor: pointer; font-weight: 600; color: var(--blue); margin-bottom: 8px; }
+.cpknote { margin: 6px 0 10px; line-height: 1.5; }
+@media (max-width: 1000px) { .steps { grid-template-columns: 1fr; } }
+
+.shell { min-height: 100vh; }
+.top { display: grid; grid-template-columns: 1fr 380px; gap: 28px; padding: 20px 28px; background: var(--panel); border-bottom: 1px solid var(--line); align-items: start; }
+.top h1 { font-size: 26px; margin: 0; } .tag { font-size: 16px; font-weight: 600; color: var(--blue); margin: 4px 0 8px; }
+.prompt { max-width: 760px; margin: 0; } .can { margin: 0; padding-left: 18px; line-height: 1.6; background: #f1f5f9; border-radius: 10px; padding: 10px 14px 10px 30px; }
+.reset { width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; cursor: pointer; font: inherit; font-size: 12.5px; margin-bottom: 4px; }
+.app { min-height: calc(100vh - 150px); }
+@media (max-width: 1000px) { .top { grid-template-columns: 1fr; } }
+
+.guide { width: 100%; border-collapse: collapse; font-size: 11px; line-height: 1.35; margin: 6px 0; }
+.guide th { text-align: left; color: var(--muted); font-weight: 600; padding: 3px 4px; border-bottom: 1px solid var(--line); }
+.guide td { vertical-align: top; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+
+.refs-main { font-size: 13px; line-height: 1.5; padding-left: 22px; } .refs-main li { margin-bottom: 8px; }
+
+.flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-top: 8px; }
+.step { position: relative; flex: 1 1 130px; min-width: 130px; display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 12px 12px; background: #f8fafc; font-size: 13px; }
+.step.wide { flex: 2 1 230px; background: #eff6ff; border-color: #bfdbfe; }
+.step.result { background: #f0fdf4; border-color: #86efac; }
+.step .badge { width: 22px; height: 22px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.step .sub { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+.step .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.pchip { display: inline-flex; flex-direction: column; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; font-size: 11px; color: var(--muted); position: relative; }
+.pchip b { font-size: 13px; color: var(--ink); }
+.pchip i, .legend i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #16a34a; margin-right: 4px; }
+.pchip i { position: absolute; top: 6px; right: 6px; margin: 0; }
+.step .lsl { font-size: 11.5px; font-weight: 600; color: #166534; margin-top: 2px; }
+.arrow { align-self: center; font-size: 26px; color: #94a3b8; line-height: 1; }
+.legend { flex-basis: 100%; margin: 6px 0 0; }
+@media (max-width: 1000px) { .arrow { display: none; } }
+.pchip { padding-right: 20px; }

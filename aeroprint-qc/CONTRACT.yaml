@@ -69,7 +69,7 @@ tasks:
       pytest tests (Python) or Rscript -e "testthat::test_dir('tests')" (R)
       passes, including one test that reproduces the SPEC section 4
       known-answer check and one degenerate case (constant data or n = 1).
-    result: "48 pytest tests pass: known answers, 8 Nelson tests, degenerate cases, planted shift."
+    result: "63 pytest tests pass: known answers, 8 Nelson tests, degenerate cases, planted shift."
 
   - id: H-04
     title: Working tool - one demo copied to app/ and wired to the H-03 function
