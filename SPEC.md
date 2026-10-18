@@ -9,10 +9,10 @@ Most of this page is already decided by the event and the [rubric](docs/criteria
 The examples after each `FILL IN` show the shape of an answer. They are not hints about the prompts.
 
 ## 1. Team and prompt
-- **Team name:** TEAM NAME TBD (members: Brendan, Sharon, Connor, Phillip, Edwin)
+- **Team name:** FIVE SIGMA (members: Brendan, Sharon, Connor, Phillip, Edwin)
 - **Track:** Virtual DL Challenge (7 days); due Fri Oct 23, 3 PM ET.
 - **Prompt we chose:** 1. Industrial Systems - 3D Printing for Aerospace (confirm the number against the Devpost page).
-- **Our public repo:** REPO URL TBD (create the public GitHub repo, then paste the link)
+- **Our public repo:** https://github.com/bjl236/team-reliability2 (create the public GitHub repo, then paste the link)
 
 ## 2. User and use case (rubric: scope 5, user and use case 5)
 - **User:** the process engineer at a titanium 3D-printing contractor who reviews tensile results after each print.
