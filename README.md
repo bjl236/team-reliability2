@@ -13,13 +13,84 @@ The tool helps aerospace contractors determine whether their printing processes 
 - **Dataset Documentation:** [`demo/README.md`](demo/README.md)
 - **Data Codebook:** [`data/README.md`](data/README.md)
 
-## *INSTALLATION INSTRUCTIONS: See Section 8.0*
-
 > **Disclaimer:** AeroPrint QC is an educational prototype developed using synthetic data. All process tolerances and capability thresholds are intended for demonstration purposes and do not represent certified aerospace qualification limits.
 
 ---
 
-## 1. Problem Statement
+## 1. Installation and Run Instructions
+
+### 1.1 Install Dependencies
+
+From the project root directory:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 1.2 Run Automated Tests
+
+```bash
+python -m pytest -q
+```
+
+All 63 tests should pass.
+
+### 1.3 Launch the Application
+
+```bash
+cd app
+python -m uvicorn app:app --port 8000
+```
+
+Open the following addresses:
+
+- **Dashboard:** http://localhost:8000
+- **API Documentation:** http://localhost:8000/docs
+
+### 1.4 Run the Automated Setup Script
+
+Alternatively, use the provided script to install dependencies, execute tests, and launch the application:
+
+```bash
+./app/testme
+```
+
+### 1.5 Rebuild the Frontend
+
+After modifying the React application:
+
+```bash
+cd app/frontend
+npm install
+npm run build
+```
+
+Commit the updated `app/frontend/dist/` build output.
+
+### 1.6 Frontend Development Mode
+
+Run the API server, then start the Vite development server:
+
+```bash
+cd app/frontend
+npm run dev
+```
+
+The development server proxies `/api` requests to port 8000.
+
+### 1.7 Regenerate Synthetic Data
+
+From the project root:
+
+```bash
+python generate_data.py
+```
+
+Fixed random seeds ensure reproducible output.
+
+---
+
+## 2. Problem Statement
 
 An aerospace contractor manufacturing 3D-printed titanium brackets is experiencing failures during client tensile strength testing. Existing process monitoring does not adequately track the environmental conditions, manufacturing parameters, and material characteristics that influence final part strength.
 
@@ -35,7 +106,7 @@ Develop a statistical quality control tool that:
 - Investigates relationships between manufacturing parameters and final tensile strength.
 - Recommends corrective investigations to improve process capability, reduce production losses, and support consistent product quality.
 
-## 2. Proposed Solution
+## 3. Proposed Solution
 
 **AeroPrint QC** is a custom dashboard that applies Statistical Process Control (SPC), process capability analysis, and exploratory statistical methods to titanium additive manufacturing data.
 
@@ -51,7 +122,7 @@ The application is intended to support production engineers who review manufactu
 
 The dashboard supports engineering decision-making but does not replace formal aerospace material qualification or validated process controls.
 
-## 3. Project Deliverables
+## 4. Project Deliverables
 
 | Component | Location / Description |
 |---|---|
@@ -63,7 +134,7 @@ The dashboard supports engineering decision-making but does not replace formal a
 | Data Documentation | `data/README.md` |
 | Automated Tests | `tests/` — 63 tests |
 
-## 4. Process Overview
+## 5. Process Overview
 
 The additive manufacturing process is represented by a sequence of manufacturing parameters, intermediate material characteristics, and final mechanical properties.
 
@@ -80,13 +151,13 @@ The additive manufacturing process is represented by a sequence of manufacturing
 
 *Figure 1. Reference process flow for additive manufacturing of titanium aerospace brackets.*
 
-## 5. Process Inputs
+## 6. Process Inputs
 
 The application accepts a CSV file containing manufacturing parameters and tensile strength measurements.
 
 Each row represents an individual print, arranged in chronological production order.
 
-### 5.1 Required and Optional Variables
+### 6.1 Required and Optional Variables
 
 | Parameter | CSV Column | Unit | Data Source |
 |---|---|---|---|
@@ -105,7 +176,7 @@ Each row represents an individual print, arranged in chronological production or
 - Prints must be arranged in production order to preserve the validity of sequential control chart analysis.
 - Porosity is referenced to the theoretical density of Ti-6Al-4V, approximately 4.43 g/cm³, rather than steel.
 
-### 5.2 User-Defined Specifications
+### 6.2 User-Defined Specifications
 
 Users can configure the following requirements:
 
@@ -116,11 +187,11 @@ Users can configure the following requirements:
 
 Specification limits are engineering requirements defined by the user and are distinct from statistical control limits calculated from process data.
 
-## 6. Dashboard Outputs
+## 7. Dashboard Outputs
 
 AeroPrint QC provides statistical summaries, process control charts, parameter evaluations, and recommendations for further investigation.
 
-### 6.1 Key Process Statistics
+### 7.1 Key Process Statistics
 
 | Statistic | Description |
 |---|---|
@@ -132,7 +203,7 @@ AeroPrint QC provides statistical summaries, process control charts, parameter e
 
 Cpk and Ppk help distinguish short-term process capability from overall process performance. These indices should be interpreted alongside process stability and the assumptions used to estimate variation.
 
-### 6.2 Statistical Process Control Charts
+### 7.2 Statistical Process Control Charts
 
 The dashboard supports the following statistical visualizations:
 
@@ -146,7 +217,7 @@ The dashboard supports the following statistical visualizations:
 
 Individuals and moving range charts are appropriate for sequential single-print observations. X-bar and S charts require appropriately defined subgroups.
 
-### 6.3 Process Parameter Inspection
+### 7.3 Process Parameter Inspection
 
 Individual manufacturing parameters are evaluated to identify potential deviations from specified operating conditions.
 
@@ -160,7 +231,7 @@ Parameters include:
 
 Available parameter measurements are summarized and compared with user-defined tolerances to support targeted process investigations.
 
-### 6.4 Parameter Correlation Analysis
+### 7.4 Parameter Correlation Analysis
 
 The dashboard uses **Pearson correlation coefficients** to examine relationships between manufacturing parameters and tensile strength.
 
@@ -174,7 +245,7 @@ This analysis helps engineers identify parameters that may warrant further inves
 
 > **Important:** Correlation does not establish causation. Observed relationships should be investigated through engineering analysis, controlled experimentation, or additional process validation.
 
-### 6.5 Suggested Corrective Investigations
+### 7.5 Suggested Corrective Investigations
 
 Based on identified process failures and parameter deviations, AeroPrint QC recommends areas for corrective investigation.
 
@@ -188,7 +259,7 @@ Recommendations are intended to help engineers:
 
 Recommendations are diagnostic guidance and must be validated before implementation in a production environment.
 
-## 7. Test Datasets
+## 8. Test Datasets
 
 Three synthetic datasets exercise the tool across distinct process conditions. Column definitions are in [`CODEBOOK.md`](CODEBOOK.md); this file explains what each dataset represents and what the tool should show.
 
@@ -212,77 +283,6 @@ The headline failure mode. For the first 13 builds the process runs near 954 MPa
 Stable in the sense that there is no single step change (build 1–13 and 14–24 means are within 5 MPa), but the process is too noisy to hold tolerance. Within-build and overall variation are both large (within-SD 24.8, overall-SD 27.4), capability is poor (Cpk 0.52), and 9 coupons fall below the minimum. The fix here is variation reduction, not hunting for one special cause — the contrast with `oxygen_drift.csv` (a shift) versus this (wide common-cause spread) is the point.
 
 > Being within specification does not mean a process is stable or capable. `stable_capable.csv` is both; `oxygen_drift.csv` fails on an assignable cause; `high_variation.csv` fails on common-cause variation. Capability and statistical control must be evaluated separately.
-
-## 8. Installation and Run Instructions
-
-### 8.1 Install Dependencies
-
-From the project root directory:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-### 8.2 Run Automated Tests
-
-```bash
-python -m pytest -q
-```
-
-All 63 tests should pass.
-
-### 8.3 Launch the Application
-
-```bash
-cd app
-python -m uvicorn app:app --port 8000
-```
-
-Open the following addresses:
-
-- **Dashboard:** http://localhost:8000
-- **API Documentation:** http://localhost:8000/docs
-
-### 8.4 Run the Automated Setup Script
-
-Alternatively, use the provided script to install dependencies, execute tests, and launch the application:
-
-```bash
-./app/testme
-```
-
-### 8.5 Rebuild the Frontend
-
-After modifying the React application:
-
-```bash
-cd app/frontend
-npm install
-npm run build
-```
-
-Commit the updated `app/frontend/dist/` build output.
-
-### 8.6 Frontend Development Mode
-
-Run the API server, then start the Vite development server:
-
-```bash
-cd app/frontend
-npm run dev
-```
-
-The development server proxies `/api` requests to port 8000.
-
-### 8.7 Regenerate Synthetic Data
-
-From the project root:
-
-```bash
-python generate_data.py
-```
-
-Fixed random seeds ensure reproducible output.
 
 ---
 
