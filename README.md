@@ -2,7 +2,7 @@
 
 **Statistical Process Control and Capability Analysis for 3D-Printed Titanium Aerospace Brackets**
 
-**INSTALLATION INSTRUCTIONS:** See Section 8.0
+## **INSTALLATION INSTRUCTIONS:** See Section 8.0
 
 AeroPrint QC is a process monitoring and quality control dashboard designed to evaluate the manufacturing capability of additively manufactured titanium aerospace brackets.
 
