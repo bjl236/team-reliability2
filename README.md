@@ -7,7 +7,7 @@ AeroPrint QC is a process monitoring and quality control dashboard designed to e
 The tool helps aerospace contractors determine whether their printing processes meet tensile strength requirements, identify when processes become unstable, and prioritize process parameters for corrective investigation.
 
 - **Project:** Six Sigma Hackathon — Industrial Systems: *3D Printing for Aerospace* (Virtual DL Challenge)
-- **Team:** Five Sigma — Brendan, Sharon, Connor Carrasquilla, Phillip, Edwin
+- **Team:** Five Sigma — Brendan Lee, Sharon Chen, Connor Carrasquilla, Phillip Gorni, Edwin Munoz
 - **Date:** October 17, 2026
 - **Target Users:** Manufacturing and process engineers responsible for monitoring production quality and investigating process failures
 - **Live URL:** *Add Posit Connect deployment URL*
