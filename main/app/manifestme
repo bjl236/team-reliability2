@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Writes app/manifest.json for Posit Connect. Run on your own machine, commit the result.
+# UNTESTED stand-in: check against the course's manifestme.
+set -e
+cd "$(dirname "$0")/.."
+rm -rf app/frontend/node_modules          # never bundle node_modules; the built dist/ is committed
+python -m pip install -q rsconnect-python
+rsconnect write-manifest fastapi --overwrite --entrypoint app:app app
